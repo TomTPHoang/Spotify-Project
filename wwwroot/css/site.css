@@ -1,0 +1,238 @@
+/* General Body Styling for Spotify Theme */
+body.spotify-theme {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar Navigation */
+nav {
+    background-color: #1DB954;
+    color: white;
+    height: 100vh;
+    padding: 20px 10px;
+}
+
+    nav .nav-link {
+        color: white;
+        font-size: 1.2rem;
+        margin: 10px 0;
+        text-decoration: none;
+    }
+
+        nav .nav-link:hover {
+            background-color: #1ed760;
+            border-radius: 5px;
+            padding: 5px 10px;
+        }
+
+/* Main Content Styling */
+main {
+    margin-left: 260px;
+    padding: 20px;
+}
+
+/* Footer Styling */
+footer {
+    font-size: 0.9rem;
+    background-color: #1DB954;
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
+
+/* About Us Section */
+.container {
+    margin-top: 30px;
+}
+
+    .container .border {
+        background-color: #1DB954;
+        color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .container .border:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+        }
+
+    .container img {
+        border: 3px solid #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+    }
+
+    .container h2 {
+        font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .container p {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+/* Hover Effects for Links */
+a {
+    color: white;
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+/* Footer styling */
+.footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    background-color: #1DB954; /* Spotify green */
+    color: white;
+    padding: 20px 0;
+}
+
+.footer-link {
+    text-decoration: underline;
+    color: white; /* White color for the link */
+}
+
+    .footer-link:hover {
+        color: #1E90FF; /* Blue color on hover */
+    }
+
+/* Ensure footer sticks to the bottom */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Contact Box Styling */
+.contact-box {
+    background: linear-gradient(145deg, #1DB954, #1ED760); /* Green gradient for a vibrant effect */
+    padding: 30px;
+    margin-top: 30px;
+    border: 2px solid #ddd;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+    color: #fff;
+}
+
+    .contact-box h2 {
+        color: #fff;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .contact-box p {
+        font-size: 1.1rem;
+        color: #fff;
+    }
+
+.contact-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+    .contact-list li {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        padding-left: 20px; /* Indentation for email items */
+    }
+
+    .contact-list a {
+        text-decoration: none;
+        color: white;
+        font-weight: bold;
+    }
+
+        .contact-list a:hover {
+            color: #1E90FF; /* Blue color on hover */
+        }
+
+    .contact-list i {
+        margin-right: 10px; /* Space between the icon and email */
+    }
+
+/* Add Font Awesome icons for the envelope */
+.fas {
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+/* Button Container */
+.sign-up-login-buttons {
+    display: flex;
+    justify-content: center; /* Center horizontally within the container */
+    align-items: center; /* Center vertically within the container */
+    gap: 20px; /* Spacing between buttons */
+    margin-top: 30px;
+}
+
+/* Sign Up Button */
+.btn-sign-up {
+    background-color: #1DB954; /* Spotify green */
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+    .btn-sign-up:hover {
+        background-color: #1ed760; /* Lighter green on hover */
+        transform: scale(1.05); /* Slight scaling effect */
+    }
+
+/* Log In Button */
+.btn-log-in {
+    background-color: #1ED760; /* Lighter green */
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+    .btn-log-in:hover {
+        background-color: #1DB954; /* Darker green on hover */
+        transform: scale(1.05); /* Slight scaling effect */
+    }
+
+/* Features Highlight - Updated */
+/* ... other styles ... */
+
+.features-highlight {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the left */
+    gap: 30px;
+    color: white;
+}
+
+    .features-highlight .feature {
+        text-align: center;
+    }
+
+/* New wrapper for Leaderboard and buttons */
+.leaderboard-buttons-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
