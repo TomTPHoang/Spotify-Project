@@ -1,0 +1,34 @@
+﻿@model List<Song>
+
+<h1>Spotify Song Details</h1>
+
+@foreach (var song in Model)
+{
+    <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
+        <h3>Title: @song.Title</h3>
+        <p><strong>Artist(s):</strong> @song.Artist</p>
+        <p><strong>Album:</strong> @song.Album</p>
+
+        @if (!string.IsNullOrEmpty(song.PreviewUrl))
+        {
+            <p><strong>Preview:</strong></p>
+            <audio controls>
+                <source src="@song.PreviewUrl" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        }
+        else
+        {
+            <p><strong>Preview:</strong> Not available</p>
+        }
+
+        <hr />
+
+        <form method="post" action="/Game/Guess">
+            <label for="guess-@song.Title">Your Guess:</label>
+            <input type="hidden" name="correctTitle" value="@song.Title" />
+            <input type="text" id="guess-@song.Title" name="guess" placeholder="Enter the song title" style="width: 100%; padding: 5px;" />
+            <button type="submit" style="margin-top: 10px; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Submit Guess</button>
+        </form>
+    </div>
+}
