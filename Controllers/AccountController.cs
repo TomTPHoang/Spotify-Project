@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace SpotifyThemeApp.Controllers
+namespace Spotify_Project.Controllers
 {
     public class AccountController : Controller
     {
