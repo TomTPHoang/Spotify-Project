@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Spotify_Project.Models;
 using SpotifyAPI.Web;
 
 namespace Spotify_Project.Controllers
@@ -8,13 +9,21 @@ namespace Spotify_Project.Controllers
         [HttpGet]
         public IActionResult Login()
         {
+            var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
             var loginRequest = new LoginRequest(
-                new Uri("https://localhost:7237/callback"), // Updated Redirect URI
-                "2e450fda8e8d4ff594d80e4345035f7d",
+                new Uri("https://localhost:7237/callback"), // Redirect URI
+                clientId, // Retrieve Client ID from environment variable
                 LoginRequest.ResponseType.Code
             )
             {
-                Scope = new[] { Scopes.PlaylistReadPrivate, Scopes.PlaylistReadCollaborative }
+                Scope = new[]
+                {
+                    Scopes.PlaylistReadPrivate,
+                    Scopes.PlaylistReadCollaborative,
+                    Scopes.Streaming,
+                    Scopes.UserReadPlaybackState,
+                    Scopes.UserModifyPlaybackState
+                }
             };
 
             var uri = loginRequest.ToUri();
@@ -22,22 +31,21 @@ namespace Spotify_Project.Controllers
         }
 
         [HttpGet("callback")]
-        public async Task<IActionResult> Callback(string code, string error)
+        public async Task<IActionResult> Callback(string code)
         {
-            if (!string.IsNullOrEmpty(error))
-            {
-                return View("Error", error); // Display an error view if needed
-            }
-
             var tokenRequest = new AuthorizationCodeTokenRequest(
-                "2e450fda8e8d4ff594d80e4345035f7d",
-                "4099efbf05324a12b86361d626c3b53d",
+                Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID"),
+                Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET"),
                 code,
-                new Uri("https://localhost:7237/callback") // Updated Redirect URI
+                new Uri("https://localhost:7237/callback")
             );
 
             var oAuthClient = new OAuthClient();
             var tokenResponse = await oAuthClient.RequestToken(tokenRequest);
+
+            // Log the retrieved token
+            Console.WriteLine($"Access Token retrieved in AuthController: {tokenResponse.AccessToken}");
+            Console.WriteLine($"Refresh Token retrieved in AuthController: {tokenResponse.RefreshToken}");
 
             // Save tokens in session
             HttpContext.Session.SetString("AccessToken", tokenResponse.AccessToken);
@@ -45,5 +53,6 @@ namespace Spotify_Project.Controllers
 
             return RedirectToAction("Index", "Game");
         }
+
     }
 }

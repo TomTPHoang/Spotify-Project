@@ -27,12 +27,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
-
 // Enable session middleware
 app.UseSession();
-
+app.UseRouting();
 app.UseAuthorization();
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
