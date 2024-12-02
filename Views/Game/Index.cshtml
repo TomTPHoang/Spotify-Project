@@ -1,34 +1,231 @@
-﻿@model List<Song>
+﻿@model List<Spotify_Project.Models.Song>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
-<h1>Spotify Song Details</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Tracks</title>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+</head>
 
-@foreach (var song in Model)
-{
-    <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
-        <h3>Title: @song.Title</h3>
-        <p><strong>Artist(s):</strong> @song.Artist</p>
-        <p><strong>Album:</strong> @song.Album</p>
+<body>
+    <h1>Your Tracks</h1>
 
-        @if (!string.IsNullOrEmpty(song.PreviewUrl))
-        {
-            <p><strong>Preview:</strong></p>
-            <audio controls>
-                <source src="@song.PreviewUrl" type="audio/mpeg">
-                Your browser does not support the audio element.
-            </audio>
+    @if (!Model.Any())
+    {
+        <p>No tracks available to display.</p>
+        <p>Access Token from ViewBag: @ViewBag.AccessToken</p>
+    }
+    else
+    {
+        <div id="game">
+            <h2>Guess the Song!</h2>
+            <p id="hint">The song is playing...</p>
+            <button id="play-snippet">Play Snippet</button>
+            <br>
+            <input type="text" id="guess" placeholder="Your Guess" />
+            <button id="submit-guess">Submit Guess</button>
+            <p id="result"></p>
+        </div>
+    }
+
+    <script>
+        console.log("JavaScript loaded and executing.");
+        let token = '@ViewData["AccessToken"]';
+        console.log("Access Token in Razor View:", token);
+
+        if (!token || token === 'undefined') {
+            console.error("Access Token is missing in Razor View. Check the controller logic.");
         }
-        else
-        {
-            <p><strong>Preview:</strong> Not available</p>
+
+        let currentSong = null;
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            console.log("Spotify Web Playback SDK is ready.");
+            console.log("Token being passed to SDK:", token);
+
+            const player = new Spotify.Player({
+                name: 'My Web Player',
+                getOAuthToken: (cb) => { cb(token); },
+                volume: 0.1,
+            });
+
+            player.addListener('ready', ({ device_id }) => {
+                console.log("Player is ready with Device ID:", device_id);
+                window.spotifyDeviceId = device_id;
+            });
+
+            player.addListener('not_ready', ({ device_id }) => {
+                console.warn("Player went offline with Device ID:", device_id);
+            });
+
+            player.connect().then(success => {
+                if (success) {
+                    console.log("Spotify Player connected successfully.");
+                } else {
+                    console.error("Failed to connect Spotify Player.");
+                }
+            });
+        };
+
+        // Fetch a random song from the backend
+        async function fetchRandomSong() {
+            try {
+                console.log("Fetching a random song...");
+                const response = await fetch('/Game/RandomSong', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                console.log("Raw Response:", response);
+                if (!response.ok) {
+                    console.error("Failed to fetch random song. Status:", response.status);
+                    alert("Failed to fetch a random song. Please try again.");
+                    return null;
+                }
+
+                const song = await response.json();
+                console.log("Parsed Response JSON:", song);
+
+                if (!song || !song.spotifyUri) {
+                    console.error("Random song does not contain a SpotifyUri field:", song);
+                    alert("Failed to retrieve a valid song. Please try again.");
+                    return null;
+                }
+
+                currentSong = {
+                    Title: song.title,
+                    Artist: song.artist,
+                    Album: song.album,
+                    SpotifyUri: song.spotifyUri,
+                };
+                console.log("Current song:", currentSong);
+                return song;
+            } catch (error) {
+                console.error("Error fetching random song:", error);
+                return null;
+            }
         }
 
-        <hr />
+        // Play a snippet of the selected song
+        function playSnippet(songUri, startTime) {
+            const deviceId = window.spotifyDeviceId;
+            if (!deviceId) {
+                console.error("Device ID not set. Ensure Web Playback SDK is connected.");
+                alert("The Spotify player is not ready. Please wait or refresh the page.");
+                return;
+            }
 
-        <form method="post" action="/Game/Guess">
-            <label for="guess-@song.Title">Your Guess:</label>
-            <input type="hidden" name="correctTitle" value="@song.Title" />
-            <input type="text" id="guess-@song.Title" name="guess" placeholder="Enter the song title" style="width: 100%; padding: 5px;" />
-            <button type="submit" style="margin-top: 10px; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Submit Guess</button>
-        </form>
-    </div>
-}
+            console.log("Attempting to play snippet with token:", token);
+            console.log("Device ID:", deviceId);
+            console.log("URI:", songUri);
+            console.log("Start Time (ms):", startTime);
+
+            // Transfer Playback to Web Player
+            fetch(`https://api.spotify.com/v1/me/player`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    device_ids: [deviceId],
+                    play: false,
+                }),
+            }).then(response => {
+                if (response.ok) {
+                    console.log("Playback successfully transferred to Web Playback SDK.");
+
+                    fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            uris: [songUri],
+                            position_ms: startTime,
+                        }),
+                    }).then(playResponse => {
+                        if (playResponse.ok) {
+                            console.log("Playing snippet successfully.");
+                            setTimeout(() => {
+                                console.log("Pausing playback after 10 seconds.");
+                                fetch(`https://api.spotify.com/v1/me/player/pause`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                    },
+                                });
+                            }, 10000);
+                        } else {
+                            console.error("Failed to play snippet:", playResponse);
+                        }
+                    }).catch(playError => {
+                        console.error("Error during play request:", playError);
+                        console.error("Access Token during play error:", token);
+                    });
+                } else {
+                    console.error("Failed to transfer playback:", response);
+                }
+            }).catch(error => {
+                console.error("Error during playback transfer:", error);
+                console.error("Access Token during transfer error:", token);
+            });
+        }
+
+        // Handle Play Snippet button click
+        document.getElementById('play-snippet').addEventListener('click', async () => {
+            const song = await fetchRandomSong();
+            if (!song) {
+                alert('No songs available!');
+                return;
+            }
+
+            console.log("Selected Song:", song);
+            const randomStartTime = Math.floor(Math.random() * 90000); // Play from a random start time
+
+            if (!song.spotifyUri) {
+                console.error("Spotify URI is missing in the selected song:", song);
+                alert("Cannot play this song. Please try another.");
+                return;
+            }
+
+            playSnippet(song.spotifyUri, randomStartTime);
+        });
+
+        // Handle Submit Guess button click
+        document.getElementById('submit-guess').addEventListener('click', () => {
+            const userGuess = document.getElementById('guess').value.trim();
+            const result = document.getElementById('result');
+
+            console.log("Current Song:", currentSong);
+            console.log("User Guess:", userGuess);
+
+            if(!currentSong || !currentSong.Title){
+                console.error("currentSong is not properly set or missing title:",currentSong);
+                result.innerText = "No song is currently Playing!";
+                return;
+            }
+
+            console.log("Correct Answer:", currentSong.Title);
+
+            if (!currentSong) {
+                result.innerText = 'No song is currently playing!';
+                return;
+            }
+
+            if (userGuess.toLowerCase() === currentSong.Title.toLowerCase()) {
+                result.innerText = 'Correct! 🎉';
+            } else {
+                result.innerText = `Incorrect! The correct answer was "${currentSong.Title}".`;
+            }
+        });
+    </script>
+</body>
+</html>

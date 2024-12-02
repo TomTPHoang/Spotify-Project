@@ -6,5 +6,6 @@
         public string Artist { get; set; }
         public string Album { get; set; }
         public string PreviewUrl { get; set; }
+        public string SpotifyUri { get; set; }
     }
 }
