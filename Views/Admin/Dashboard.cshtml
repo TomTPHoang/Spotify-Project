@@ -1,0 +1,25 @@
+﻿<h1 class="my-4 text-center">Admin Dashboard</h1>
+<p class="text-center">Welcome, Admin!</p>
+<hr />
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Username</th>
+                <th scope="col">Correct Guesses</th>
+                <th scope="col">Wrong Guesses</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var stat in Model)
+            {
+                <tr>
+                    <td>@stat.Username</td>
+                    <td>@stat.CorrectGuesses</td>
+                    <td>@stat.WrongGuesses</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

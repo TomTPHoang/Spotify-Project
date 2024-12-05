@@ -78,6 +78,26 @@
     }
 
     <script>
+        let spotifyUsername = null;
+
+        async function fetchSpotifyUsername() {
+            try {
+                const response = await fetch('/Game/GetSpotifyUsername');
+                const data = await response.json();
+
+                if (data.success) {
+                    spotifyUsername = data.username;
+                    console.log("Spotify Username:", spotifyUsername);
+                } else {
+                    console.error("Failed to fetch Spotify username:", data.error);
+                }
+            } catch (error) {
+                console.error("Error fetching Spotify username:", error);
+            }
+        }
+
+        fetchSpotifyUsername();
+
         console.log("JavaScript loaded and executing.");
         let token = '@ViewData["AccessToken"]';
         console.log("Access Token in Razor View:", token);
@@ -243,8 +263,9 @@
             playSnippet(currentSong.SpotifyUri, lastStartTime);
         });
 
+
         // Handle Submit Guess button click
-        document.getElementById('submit-guess').addEventListener('click', () => {
+        document.getElementById('submit-guess').addEventListener('click', async () => {
             const userGuess = document.getElementById('guess').value.trim();
             const result = document.getElementById('result');
 
@@ -266,17 +287,53 @@
                 return;
             }
 
-            // Check if the guess is correct
-            if (userGuess.toLowerCase() === currentSong.Title.toLowerCase()) {
+            const isCorrect = userGuess.toLowerCase() === currentSong.Title.toLowerCase();
+
+            if (isCorrect) {
                 result.innerText = 'Correct! 🎉';
                 result.className = '';
                 result.style.color = 'green';
                 result.style.opacity = 1;
-            } else {
+            }
+            else {
                 result.innerText = `Incorrect! The correct answer was "${currentSong.Title}".`;
                 result.className = 'incorrect';
                 result.style.color = 'red';
                 result.style.opacity = 1;
+            }
+
+            // Check if the guess is correct
+            // if (userGuess.toLowerCase() === currentSong.Title.toLowerCase()) {
+            //     result.innerText = 'Correct! 🎉';
+            //     result.className = '';
+            //     result.style.color = 'green';
+            //     result.style.opacity = 1;
+            // } else {
+            //     result.innerText = `Incorrect! The correct answer was "${currentSong.Title}".`;
+            //     result.className = 'incorrect';
+            //     result.style.color = 'red';
+            //     result.style.opacity = 1;
+            // }
+
+            // Send the guess result to the server
+            try {
+                const response = await fetch('/Game/UpdateGuessResult', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: spotifyUsername,
+                        isCorrect: isCorrect
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to update guess result on the server.');
+                }
+            } catch (error) {
+                console.error('Error updating guess result:', error);
             }
 
             // Automatically hide the result after 3 seconds
