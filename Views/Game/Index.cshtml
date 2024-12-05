@@ -8,6 +8,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Tracks</title>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <style>
+        button {
+            background-color: #1DB954;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            button:hover {
+                background-color: #1AA34A;
+            }
+
+            button:focus {
+                outline: none;
+            }
+
+        /* Center alignment */
+        #game {
+            text-align: center;
+        }
+
+        #play-snippet, #replay-snippet, #submit-guess {
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+
+        /* Result styling */
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: center;
+            color: #1DB954;
+            transition: opacity 0.5s ease;
+        }
+
+            #result.incorrect {
+                color: red;
+            }
+    </style>
 </head>
 
 <body>
@@ -22,8 +67,9 @@
     {
         <div id="game">
             <h2>Guess the Song!</h2>
-            <p id="hint">The song is playing...</p>
+            <p id="hint">Press "Play Snippet" to start</p>
             <button id="play-snippet">Play Snippet</button>
+            <button id="replay-snippet">Replay Snippet</button>
             <br>
             <input type="text" id="guess" placeholder="Your Guess" />
             <button id="submit-guess">Submit Guess</button>
@@ -41,6 +87,7 @@
         }
 
         let currentSong = null;
+        let lastStartTime = null; // Track the start time of the last snippet played
 
         window.onSpotifyWebPlaybackSDKReady = () => {
             console.log("Spotify Web Playback SDK is ready.");
@@ -82,7 +129,6 @@
                     },
                 });
 
-                console.log("Raw Response:", response);
                 if (!response.ok) {
                     console.error("Failed to fetch random song. Status:", response.status);
                     alert("Failed to fetch a random song. Please try again.");
@@ -90,7 +136,6 @@
                 }
 
                 const song = await response.json();
-                console.log("Parsed Response JSON:", song);
 
                 if (!song || !song.spotifyUri) {
                     console.error("Random song does not contain a SpotifyUri field:", song);
@@ -104,7 +149,6 @@
                     Album: song.album,
                     SpotifyUri: song.spotifyUri,
                 };
-                console.log("Current song:", currentSong);
                 return song;
             } catch (error) {
                 console.error("Error fetching random song:", error);
@@ -121,11 +165,6 @@
                 return;
             }
 
-            console.log("Attempting to play snippet with token:", token);
-            console.log("Device ID:", deviceId);
-            console.log("URI:", songUri);
-            console.log("Start Time (ms):", startTime);
-
             // Transfer Playback to Web Player
             fetch(`https://api.spotify.com/v1/me/player`, {
                 method: 'PUT',
@@ -139,8 +178,6 @@
                 }),
             }).then(response => {
                 if (response.ok) {
-                    console.log("Playback successfully transferred to Web Playback SDK.");
-
                     fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
                         method: 'PUT',
                         headers: {
@@ -153,9 +190,7 @@
                         }),
                     }).then(playResponse => {
                         if (playResponse.ok) {
-                            console.log("Playing snippet successfully.");
                             setTimeout(() => {
-                                console.log("Pausing playback after 10 seconds.");
                                 fetch(`https://api.spotify.com/v1/me/player/pause`, {
                                     method: 'PUT',
                                     headers: {
@@ -166,16 +201,8 @@
                         } else {
                             console.error("Failed to play snippet:", playResponse);
                         }
-                    }).catch(playError => {
-                        console.error("Error during play request:", playError);
-                        console.error("Access Token during play error:", token);
                     });
-                } else {
-                    console.error("Failed to transfer playback:", response);
                 }
-            }).catch(error => {
-                console.error("Error during playback transfer:", error);
-                console.error("Access Token during transfer error:", token);
             });
         }
 
@@ -187,16 +214,33 @@
                 return;
             }
 
-            console.log("Selected Song:", song);
-            const randomStartTime = Math.floor(Math.random() * 90000); // Play from a random start time
+            // Generate a random start time for the snippet (within 90 seconds of the song)
+            const randomStartTime = Math.floor(Math.random() * 90000);
+            lastStartTime = randomStartTime;
 
             if (!song.spotifyUri) {
-                console.error("Spotify URI is missing in the selected song:", song);
                 alert("Cannot play this song. Please try another.");
                 return;
             }
 
+            // Play the snippet
             playSnippet(song.spotifyUri, randomStartTime);
+        });
+
+        // Handle Replay Snippet button click
+        document.getElementById('replay-snippet').addEventListener('click', () => {
+            if (!currentSong || !currentSong.SpotifyUri) {
+                alert("No song is currently loaded to replay.");
+                return;
+            }
+
+            if (lastStartTime === null) {
+                alert("No snippet has been played yet to replay.");
+                return;
+            }
+
+            // Replay the last snippet
+            playSnippet(currentSong.SpotifyUri, lastStartTime);
         });
 
         // Handle Submit Guess button click
@@ -204,27 +248,44 @@
             const userGuess = document.getElementById('guess').value.trim();
             const result = document.getElementById('result');
 
-            console.log("Current Song:", currentSong);
-            console.log("User Guess:", userGuess);
-
-            if(!currentSong || !currentSong.Title){
-                console.error("currentSong is not properly set or missing title:",currentSong);
-                result.innerText = "No song is currently Playing!";
+            // Check if the guess is empty
+            if (!userGuess) {
+                result.innerText = "Please enter a guess!";
+                result.className = '';
+                result.style.color = 'yellow';
+                result.style.opacity = 1;
                 return;
             }
 
-            console.log("Correct Answer:", currentSong.Title);
-
-            if (!currentSong) {
-                result.innerText = 'No song is currently playing!';
+            // Check if the song is loaded
+            if (!currentSong || !currentSong.Title) {
+                result.innerText = "No song is currently playing!";
+                result.className = '';
+                result.style.color = 'yellow';
+                result.style.opacity = 1;
                 return;
             }
 
+            // Check if the guess is correct
             if (userGuess.toLowerCase() === currentSong.Title.toLowerCase()) {
                 result.innerText = 'Correct! 🎉';
+                result.className = '';
+                result.style.color = 'green';
+                result.style.opacity = 1;
             } else {
                 result.innerText = `Incorrect! The correct answer was "${currentSong.Title}".`;
+                result.className = 'incorrect';
+                result.style.color = 'red';
+                result.style.opacity = 1;
             }
+
+            // Automatically hide the result after 3 seconds
+            setTimeout(() => {
+                result.style.opacity = 0;
+            }, 3000);
+
+            // Clear the input field
+            document.getElementById('guess').value = '';
         });
     </script>
 </body>

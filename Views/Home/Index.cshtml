@@ -35,7 +35,7 @@
             color: white;
             padding: 50px 0;
             text-align: center;
-            background-image: url('https://link_to_music_background_image'); /* Example dynamic background */
+            background-image: url('https://link_to_music_background_image');
             background-size: cover;
             background-position: center;
         }
@@ -118,50 +118,23 @@
 </head>
 <body class="spotify-theme">
     <div class="container-fluid" style="padding: 20px;">
-        <!-- Hero Section -->
         <div class="hero-section">
             <h1>Think you know your music? Put your Spotify knowledge to the test!</h1>
         </div>
 
-        <!-- What is Spotify heading -->
         <div class="what-is-spotify">What is Spotify Song Guesser?</div>
 
-        <!-- Definition of what Spotify is -->
         <p class="definition-text">
             Our game is a fun and challenging music trivia experience where players are given a short snippet of a song, and they must guess the song's title or artist. Whether you're a casual listener or a music enthusiast, this game tests your knowledge of popular tracks across various genres. Play along, challenge your friends, and see how many songs you can correctly identify in the shortest time possible!
         </p>
 
-        <!-- How to Play -->
         <div class="how-to-play">
             <h2>How to Play</h2>
             <p class="step">1. Listen to the clip</p>
             <p class="step">2. Guess the song</p>
-            <p class="step">3. Climb the leaderboard!</p>
-            <!-- Visual aid carousel showing the game interface -->
-            <div id="carouselExample" class="carousel slide">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="https://link_to_game_interface_image_1" class="d-block w-100" alt="Game interface step 1">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="https://link_to_game_interface_image_2" class="d-block w-100" alt="Game interface step 2">
-                    </div>
-                    <div class="carousel-item">
-                        <img src="https://link_to_game_interface_image_3" class="d-block w-100" alt="Game interface step 3">
-                    </div>
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
+            <p class="step">3. Good Luck!</p>
         </div>
 
-        <!-- Features Highlight -->
         <div class="features-highlight">
             <div class="feature">
                 <h3>Playlist Integration</h3>
@@ -169,11 +142,12 @@
             </div>
             <div class="leaderboard-buttons-wrapper">
                 <div class="feature">
-                    <h3>Leaderboard</h3>
-                    <p>Compete with friends and music lovers worldwide!</p>
+                    <h3>Play Here!</h3>
+                    <p>Click on "Play" to start the game.</p>
                 </div>
 
                 <div class="sign-up-login-buttons">
+                    <a href="@Url.Action("Login", "Account")" class="btn-log-in">Login</a>
                     <a href="@Url.Action("Login", "Auth")" class="btn-log-in">Play</a>
                 </div>
             </div>
@@ -182,7 +156,6 @@
                 <p>Expand your musical horizons!</p>
             </div>
         </div>
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
