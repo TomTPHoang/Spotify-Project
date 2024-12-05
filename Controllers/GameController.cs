@@ -11,8 +11,9 @@ namespace Spotify_Project.Controllers
     public class GameController : Controller
     {
         private readonly SpotifyClient _spotify;
+        private readonly AppDbContext _context;
 
-        public GameController(IHttpContextAccessor httpContextAccessor)
+        public GameController(IHttpContextAccessor httpContextAccessor, AppDbContext context)
         {
             // Retrieve the AccessToken from session
             var accessToken = httpContextAccessor.HttpContext.Session.GetString("AccessToken");
@@ -25,6 +26,7 @@ namespace Spotify_Project.Controllers
 
             // Initialize the Spotify client
             _spotify = new SpotifyClient(accessToken);
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -140,5 +142,68 @@ namespace Spotify_Project.Controllers
             return Json(randomSong);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSpotifyUsername()
+        {
+            // Retrieve the Access Token from session
+            var accessToken = HttpContext.Session.GetString("AccessToken");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return Json(new { success = false, error = "User not authenticated." });
+            }
+
+            try
+            {
+                // Initialize Spotify Client
+                var spotify = new SpotifyClient(accessToken);
+
+                // Fetch the user's profile
+                var userProfile = await spotify.UserProfile.Current();
+
+                return Json(new { success = true, username = userProfile.DisplayName ?? userProfile.Id });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error fetching Spotify username: {ex.Message}");
+                return Json(new { success = false, error = "Failed to fetch username." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateGuessResult([FromBody] GuessResult guessResult)
+        {
+            // Find or create a user stat record
+            var userStat = _context.UserStats.FirstOrDefault(u => u.Username == guessResult.Username);
+            if (userStat == null)
+            {
+                userStat = new UserStat
+                {
+                    Username = guessResult.Username,
+                    CorrectGuesses = 0,
+                    WrongGuesses = 0
+                };
+                _context.UserStats.Add(userStat);
+            }
+
+            // Update the guess counts
+            if (guessResult.IsCorrect)
+            {
+                userStat.CorrectGuesses++;
+            }
+            else
+            {
+                userStat.WrongGuesses++;
+            }
+
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+        public class GuessResult
+        {
+            public string Username { get; set; }
+            public bool IsCorrect { get; set; }
+        }
     }
 }
